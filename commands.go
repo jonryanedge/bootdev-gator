@@ -16,7 +16,7 @@ type commands struct {
 func (c *commands) run(s *state, cmd command) error {
 	handler, exists := c.handlers[cmd.name]
 	if !exists {
-		return fmt.Errorf("Unknown command: %s", cmd.name)
+		return fmt.Errorf("unknown command: %s", cmd.name)
 	}
 
 	return handler(s, cmd)

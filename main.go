@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/jonryanedge/bootdev-gator/internal/config"
+	"github.com/jonryanedge/bootdev-gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -13,13 +16,26 @@ func main() {
 		log.Fatalf("Failed to read config: %v", err)
 	}
 
-	s := &state{cfg: &cfg}
+	db, err := sql.Open("postgres", cfg.DbUrl)
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
+	}
+
+	dbQueries := database.New(db)
+
+	s := &state{
+		db:  dbQueries,
+		cfg: &cfg,
+	}
 
 	cmds := &commands{
 		handlers: make(map[string]func(*state, command) error),
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerResetUsers)
+	cmds.register("users", handlerGetUsers)
 
 	args := os.Args[1:]
 	if len(args) < 1 {
